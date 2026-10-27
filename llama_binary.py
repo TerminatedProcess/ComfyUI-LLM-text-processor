@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import fnmatch
 import json
+import os
 import platform
+import shutil
 import time
 import urllib.request
 import zipfile
@@ -190,6 +192,11 @@ def _extract_assets(assets: list[dict], install_dir: Path) -> None:
 
 
 def ensure_llama_cli_paths() -> LlamaCliPaths:
+    # Local patch: off Windows, use a system llama-cli (LLAMA_CLI env or PATH).
+    if platform.system().lower() != "windows":
+        system_cli = os.environ.get("LLAMA_CLI") or shutil.which("llama-cli")
+        if system_cli:
+            return LlamaCliPaths(cli=Path(system_cli))
     spec = _platform_spec()
     existing = _existing_install(spec)
     if existing is not None:
